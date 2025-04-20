@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from blocks import ConvNextBlock
+from model.blocks import ConvNextBlock
 
 class StateEncoder(nn.Module):
     def __init__(self, input_size: int,
