@@ -51,8 +51,7 @@ def load_model():
     # model = MockModel()
     with open("config/config.yaml", "r") as f:
         config = yaml.safe_load(f)
-    model = ExploreJEPA(image_size=config["model"]["image_size"],
-                        encoding_hidden_dim=config["model"]["hidden_dim"],
+    model = ExploreJEPA(encoding_hidden_dim=config["model"]["hidden_dim"],
                         encoding_dim=config["model"]["output_dim"],
                         encoding_layers=config["model"]["layers"])
     ckpt_path = "model_weights.pth"

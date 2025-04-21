@@ -5,8 +5,7 @@ from model.encoder import StateEncoder
 from model.predictor import StatePredictor
 
 class ExploreJEPA(nn.Module):
-    def __init__(self, image_size: int,
-                 encoding_hidden_dim: int,
+    def __init__(self, encoding_hidden_dim: int,
                  encoding_dim: int,
                  encoding_layers: int,
                  action_dim: int=2,
@@ -14,12 +13,10 @@ class ExploreJEPA(nn.Module):
         super().__init__()
         self.device = device
         self.repr_dim = encoding_dim
-        self.init_state_encoder = StateEncoder(input_size=image_size,
-                                               hidden_dim=encoding_hidden_dim,
+        self.init_state_encoder = StateEncoder(hidden_dim=encoding_hidden_dim,
                                                embedding_dim=encoding_dim,
                                                block_layers=encoding_layers)
-        self.later_state_encoder = StateEncoder(input_size=image_size,
-                                                hidden_dim=encoding_hidden_dim,
+        self.later_state_encoder = StateEncoder(hidden_dim=encoding_hidden_dim,
                                                 embedding_dim=encoding_dim,
                                                 block_layers=encoding_layers)
         self.state_predictor = StatePredictor(state_dim=encoding_dim,

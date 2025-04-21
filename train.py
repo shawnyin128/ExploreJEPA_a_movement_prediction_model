@@ -16,7 +16,7 @@ def get_optimizer(model, learning_rate, weight_decay):
     return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 def get_scheduler(optimizer):
-    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10000)
+    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=7000)
 
 def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambda_d, lambda_r, beta_r):
     criterion = get_criterion()
@@ -55,8 +55,7 @@ if __name__ == "__main__":
     hidden_dim = config["model"]["hidden_dim"]
     encoding_dim = config["model"]["output_dim"]
     layers = config["model"]["layers"]
-    model = ExploreJEPA(image_size=image_size,
-                        encoding_hidden_dim=hidden_dim,
+    model = ExploreJEPA(encoding_hidden_dim=hidden_dim,
                         encoding_dim=encoding_dim,
                         encoding_layers=layers)
     model.to("cuda")
