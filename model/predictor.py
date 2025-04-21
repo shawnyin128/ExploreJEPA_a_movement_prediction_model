@@ -3,13 +3,12 @@ import torch.nn as nn
 
 class StatePredictor(nn.Module):
     def __init__(self, state_dim: int,
-                 action_dim: int,
-                 velocity_dim: int) -> None:
+                 action_dim: int) -> None:
         super().__init__()
-        self.in_dim = state_dim + action_dim + velocity_dim
+        self.in_dim = state_dim + action_dim
         self.hidden_dim = 4 * state_dim
 
-        self.linear1 = nn.Linear(in_features=state_dim + action_dim + velocity_dim, out_features=self.hidden_dim)
+        self.linear1 = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dim)
         self.relu1 = nn.ReLU()
         self.bn1 = nn.BatchNorm1d(self.hidden_dim)
         self.dropout = nn.Dropout(p=0.1)
@@ -21,7 +20,7 @@ class StatePredictor(nn.Module):
         self.linear3 = nn.Linear(in_features=self.hidden_dim, out_features=state_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: [b, 259]
+        # x: [b, 258]
         original = x[:, :256]  # original: [b, 256]
 
         s = self.linear1(x)
