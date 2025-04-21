@@ -5,6 +5,7 @@ from models import MockModel
 import glob
 from model.JEPA import ExploreJEPA
 import yaml
+import os
 
 def get_device():
     """Check for GPU availability."""
@@ -49,7 +50,7 @@ def load_model():
     """Load or initialize the model."""
     # TODO: Replace MockModel with your trained model
     # model = MockModel()
-    with open("config.yaml", "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r") as f:
         config = yaml.safe_load(f)
     model = ExploreJEPA(encoding_hidden_dim=config["model"]["hidden_dim"],
                         encoding_dim=config["model"]["output_dim"],
