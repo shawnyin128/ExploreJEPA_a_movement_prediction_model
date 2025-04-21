@@ -1,0 +1,76 @@
+import torch
+import yaml
+import torch.nn as nn
+import torch.optim as optim
+
+from tqdm import tqdm
+
+from dataset import create_wall_dataloader
+from model.JEPA import ExploreJEPA
+from energy.energy import energy_function
+
+def get_criterion():
+    return nn.MSELoss()
+
+def get_optimizer(model, learning_rate, weight_decay):
+    return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+def get_scheduler(optimizer):
+    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10000)
+
+def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambda_d, lambda_r, beta_r):
+    criterion = get_criterion()
+    optimizer = get_optimizer(model, learning_rate, weight_decay)
+    scheduler = get_scheduler(optimizer)
+
+    for i in range(epoch):
+        pbar = tqdm(train_loader)
+        for data in pbar:
+            states = data.states
+            actions = data.actions
+            predicted_s, encoded_s = model(states, actions)
+
+            energy, d, r = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, beta_r=beta_r)
+
+            optimizer.zero_grad()
+            energy.backward()
+            optimizer.step()
+            scheduler.step()
+
+            pbar.set_postfix({"total energy: ": energy.item(), "mse loss:": d.item(), "reg loss:": r.item()})
+
+        ckpt_path = f"/scratch/xy2053/2025SP/2572_DeepLearning/codes/checkpoint/checkpoint_weights_{i + 1}.pth"
+        torch.save(model.state_dict(), ckpt_path)
+    return model
+
+if __name__ == "__main__":
+    with open("config/config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+
+    epoch = config["train"]["epoch"]
+    batch_size = config["train"]["batch_size"]
+    train_dataloader = create_wall_dataloader(data_path="/scratch/DL25SP/train", batch_size=batch_size)
+
+    image_size = config["model"]["image_size"]
+    hidden_dim = config["model"]["hidden_dim"]
+    encoding_dim = config["model"]["output_dim"]
+    layers = config["model"]["layers"]
+    model = ExploreJEPA(image_size=image_size,
+                        encoding_hidden_dim=hidden_dim,
+                        encoding_dim=encoding_dim,
+                        encoding_layers=layers)
+    model.to("cuda")
+
+    learning_rate = config["train"]["learning_rate"]
+    weight_decay = config["train"]["weight_decay"]
+    lambda_d = config["train"]["lambda_d"]
+    lambda_r = config["train"]["lambda_r"]
+    beta_r = config["train"]["beta_r"]
+    train_model = training_loop(model=model,
+                                train_loader=train_dataloader,
+                                epoch=epoch,
+                                learning_rate=learning_rate,
+                                weight_decay=weight_decay,
+                                lambda_d=lambda_d,
+                                lambda_r=lambda_r,
+                                beta_r=beta_r)

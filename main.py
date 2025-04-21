@@ -3,7 +3,8 @@ from evaluator import ProbingEvaluator
 import torch
 from models import MockModel
 import glob
-
+from model.JEPA import ExploreJEPA
+import yaml
 
 def get_device():
     """Check for GPU availability."""
@@ -47,7 +48,15 @@ def load_data(device):
 def load_model():
     """Load or initialize the model."""
     # TODO: Replace MockModel with your trained model
-    model = MockModel()
+    # model = MockModel()
+    with open("config/config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    model = ExploreJEPA(image_size=config["model"]["image_size"],
+                        encoding_hidden_dim=config["model"]["hidden_dim"],
+                        encoding_dim=config["model"]["output_dim"],
+                        encoding_layers=config["model"]["layers"])
+    ckpt_path = "model_weights.pth"
+    model.load_state_dict(torch.load(ckpt_path))
     return model
 
 
