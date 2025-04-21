@@ -1,5 +1,6 @@
 import torch
 import yaml
+import os
 import torch.nn as nn
 import torch.optim as optim
 
@@ -44,7 +45,7 @@ def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambd
     return model
 
 if __name__ == "__main__":
-    with open("config/config.yaml", "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r") as f:
         config = yaml.safe_load(f)
 
     epoch = config["train"]["epoch"]
