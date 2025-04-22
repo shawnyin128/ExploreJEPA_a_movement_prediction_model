@@ -10,19 +10,32 @@ from dataset import create_wall_dataloader
 from model.JEPA import ExploreJEPA
 from energy.energy import energy_function
 
-def get_criterion():
+def get_criterion() -> nn.Module:
     return nn.MSELoss()
 
-def get_optimizer(model, learning_rate, weight_decay):
+
+def get_optimizer(model: nn.Module,
+                  learning_rate: float,
+                  weight_decay: float) -> optim.Optimizer:
     return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-def get_scheduler(optimizer):
-    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=7000)
 
-def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambda_d, lambda_r, beta_r):
+def get_scheduler(optimizer: optim.Optimizer,
+                  t_max: int) -> optim.lr_scheduler.CosineAnnealingLR:
+    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max)
+
+
+def training_loop(model: nn.Module,
+                  train_loader: torch.utils.data.DataLoader,
+                  epoch: int,
+                  learning_rate: float,
+                  weight_decay: float,
+                  lambda_d: float,
+                  lambda_r: float,
+                  beta_r: float) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
-    scheduler = get_scheduler(optimizer)
+    scheduler = get_scheduler(optimizer, t_max=epoch * 2300)
 
     for i in range(epoch):
         pbar = tqdm(train_loader)
@@ -35,6 +48,8 @@ def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambd
 
             optimizer.zero_grad()
             energy.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
             optimizer.step()
             scheduler.step()
 
@@ -43,6 +58,7 @@ def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambd
         ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
         torch.save(model.state_dict(), ckpt_path)
     return
+
 
 if __name__ == "__main__":
     with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r") as f:
