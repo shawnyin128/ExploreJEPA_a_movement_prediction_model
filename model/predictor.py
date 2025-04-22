@@ -6,6 +6,7 @@ class StatePredictor(nn.Module):
     def __init__(self, state_dim: int,
                  action_dim: int) -> None:
         super().__init__()
+        self.state_dim = state_dim
         self.in_dim = state_dim + action_dim
         self.hidden_dim = 4 * state_dim
 
@@ -22,7 +23,7 @@ class StatePredictor(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [b, 258]
-        original = x[:, :256]  # original: [b, 256]
+        original = x[:, :self.state_dim]  # original: [b, 256]
 
         s = self.linear1(x)
         s = self.relu(s)
