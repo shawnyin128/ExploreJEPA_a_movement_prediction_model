@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class ConvNextBlock(nn.Module):
     def __init__(self, in_channels: int) -> None:
         super().__init__()
@@ -9,6 +10,7 @@ class ConvNextBlock(nn.Module):
         self.pwConv4 = nn.Conv2d(in_channels=in_channels, out_channels=4*in_channels, kernel_size=1, bias=False)
         self.gelu = nn.GELU()
         self.pwConv = nn.Conv2d(in_channels=4*in_channels, out_channels=in_channels, kernel_size=1, bias=False)
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [b, 16, 65, 65]

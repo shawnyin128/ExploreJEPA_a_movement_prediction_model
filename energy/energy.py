@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 def energy_function(criterion: nn.Module,
                     predicted: torch.Tensor,
                     encoded: torch.Tensor,

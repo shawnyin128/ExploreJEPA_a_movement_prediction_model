@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from model.blocks import ConvNextBlock
 
+
 class StateEncoder(nn.Module):
     def __init__(self, hidden_dim: int,
                  embedding_dim: int,
@@ -20,6 +21,7 @@ class StateEncoder(nn.Module):
         self.env_fc = nn.Linear(in_features=hidden_dim * 6 * 6, out_features=embedding_dim)
 
         self.dropout = nn.Dropout(p=0.1)
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [b, 2, 65, 65]

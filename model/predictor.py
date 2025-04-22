@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class StatePredictor(nn.Module):
     def __init__(self, state_dim: int,
                  action_dim: int) -> None:
@@ -17,6 +18,7 @@ class StatePredictor(nn.Module):
         self.linear3 = nn.Linear(in_features=self.hidden_dim, out_features=state_dim)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=0.1)
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [b, 258]

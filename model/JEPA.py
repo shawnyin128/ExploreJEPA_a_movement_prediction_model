@@ -4,6 +4,7 @@ import torch.nn as nn
 from model.encoder import StateEncoder
 from model.predictor import StatePredictor
 
+
 class ExploreJEPA(nn.Module):
     def __init__(self, encoding_hidden_dim: int,
                  encoding_dim: int,
@@ -21,6 +22,7 @@ class ExploreJEPA(nn.Module):
                                                 block_layers=encoding_layers)
         self.state_predictor = StatePredictor(state_dim=encoding_dim,
                                               action_dim=action_dim)
+
 
     def forward(self, x: torch.Tensor,
                 actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:

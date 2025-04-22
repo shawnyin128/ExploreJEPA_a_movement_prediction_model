@@ -10,6 +10,7 @@ from dataset import create_wall_dataloader
 from model.JEPA import ExploreJEPA
 from energy.energy import energy_function
 
+
 def get_criterion() -> nn.Module:
     return nn.MSELoss()
 
