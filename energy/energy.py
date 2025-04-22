@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def energy_function(criterion: nn.Module,
@@ -9,10 +10,12 @@ def energy_function(criterion: nn.Module,
                     lambda_r: float,
                     beta_r: float) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     distance = criterion(predicted, encoded)
-    var_p = torch.mean(predicted.var(dim=1, unbiased=False) + 1e-4)
-    var_e = torch.mean(encoded.var(dim=1, unbiased=False) + 1e-4)
+    std_p = torch.sqrt(predicted.var(dim=1, unbiased=False) + 1e-4)
+    std_e = torch.sqrt(encoded.var(dim=1, unbiased=False) + 1e-4)
 
-    reg = (var_p ** beta_r) + (var_e ** beta_r)
+    reg_p = torch.mean(F.relu(1.0 - std_p)) ** beta_r
+    reg_e = torch.mean(F.relu(1.0 - std_e)) ** beta_r
+    reg = reg_p + reg_e
 
     energy = distance * lambda_d + lambda_r * reg
 
