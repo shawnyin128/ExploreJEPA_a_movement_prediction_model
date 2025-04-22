@@ -40,7 +40,7 @@ def training_loop(model, train_loader, epoch, learning_rate, weight_decay, lambd
 
             pbar.set_postfix({"total energy: ": energy.item(), "mse loss:": d.item(), "reg loss:": r.item()})
 
-        ckpt_path = f"/scratch/xy2053/2025SP/2572_DeepLearning/codes/checkpoint/checkpoint_weights_{i + 1}.pth"
+        ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
         torch.save(model.state_dict(), ckpt_path)
     return
 
@@ -74,5 +74,5 @@ if __name__ == "__main__":
                   lambda_d=lambda_d,
                   lambda_r=lambda_r,
                   beta_r=beta_r)
-    ckpt_path = f"/scratch/xy2053/2025SP/2572_DeepLearning/codes/model_weights.pth"
+    ckpt_path = "./model_weights.pth"
     torch.save(model.state_dict(), ckpt_path)

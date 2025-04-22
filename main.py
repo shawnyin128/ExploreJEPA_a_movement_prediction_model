@@ -55,7 +55,7 @@ def load_model():
     model = ExploreJEPA(encoding_hidden_dim=config["model"]["hidden_dim"],
                         encoding_dim=config["model"]["output_dim"],
                         encoding_layers=config["model"]["layers"])
-    ckpt_path = "model_weights.pth"
+    ckpt_path = "./model_weights.pth"
     model.load_state_dict(torch.load(ckpt_path))
     return model
 
