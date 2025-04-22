@@ -57,6 +57,7 @@ def load_model():
                         encoding_layers=config["model"]["layers"])
     ckpt_path = "./model_weights.pth"
     model.load_state_dict(torch.load(ckpt_path))
+    model.to(get_device())
     return model
 
 

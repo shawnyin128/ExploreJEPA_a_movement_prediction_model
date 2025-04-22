@@ -33,7 +33,7 @@ class ExploreJEPA(nn.Module):
 
         predicted_state_repr = []
         cur_encoded_state_repr = []
-        for i in range(x.shape[1] - 1):
+        for i in range(actions.size(1)):
             prev_predicted_state_repr = init_state_repr if i == 0 else predicted_state_repr[i - 1]
             cur_action = actions[:, i, :] # [b, 2]
             # predict next state
@@ -49,6 +49,9 @@ class ExploreJEPA(nn.Module):
                 cur_encoded_state_repr.append(cur_state_repr)
 
         predicted = torch.stack(predicted_state_repr, dim=1) # [b, 16, 256]
+        if not self.training:
+            predicted = torch.cat([init_state_repr.unsqueeze(dim=1), predicted], dim=1) # [b, 17, 256]
+
         encoded = None
         if self.training:
             encoded = torch.stack(cur_encoded_state_repr, dim=1) # [b, 16, 256]
