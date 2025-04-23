@@ -1,10 +1,10 @@
 train:
-  epoch: 4
+  epoch: 10
   batch_size: 64
   learning_rate: 0.0003
   weight_decay: 0.00001
   lambda_d: 1.0
-  lambda_r: 1.0
+  lambda_r: 2.0
   beta_r: -1.0
 
 model:
