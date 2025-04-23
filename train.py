@@ -39,6 +39,9 @@ def training_loop(model: nn.Module,
 
     for i in range(epoch):
         pbar = tqdm(train_loader)
+        if i != 0 and i % 2 == 0:
+            lambda_r = lambda_r * 5
+
         for data in pbar:
             states = data.states
             actions = data.actions
