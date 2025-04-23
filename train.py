@@ -21,8 +21,9 @@ def get_optimizer(model: nn.Module,
     return optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 
-def get_scheduler(optimizer: optim.Optimizer) -> optim.lr_scheduler.CosineAnnealingWarmRestarts:
-    return optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1200, T_mult=2, eta_min=1e-6)
+def get_scheduler(optimizer: optim.Optimizer,
+                  t_max: int) -> optim.lr_scheduler.CosineAnnealingLR:
+    return optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max)
 
 
 def training_loop(model: nn.Module,
@@ -35,7 +36,7 @@ def training_loop(model: nn.Module,
                   beta_r: float) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
-    scheduler = get_scheduler(optimizer)
+    scheduler = get_scheduler(optimizer, t_max=epoch * 2300)
 
     for i in range(epoch):
         pbar = tqdm(train_loader)

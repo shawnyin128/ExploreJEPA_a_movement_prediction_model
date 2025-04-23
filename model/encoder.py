@@ -16,7 +16,6 @@ class StateEncoder(nn.Module):
 
         self.agent_fc = nn.Linear(in_features=hidden_dim * 6 * 6, out_features=embedding_dim)
         self.env_fc = nn.Linear(in_features=hidden_dim * 6 * 6, out_features=embedding_dim)
-        # self.fusion_fc = nn.Linear(in_features=embedding_dim * 2, out_features=embedding_dim)
 
         self.gap = nn.AdaptiveAvgPool2d(output_size=(6, 6))
         self.dropout = nn.Dropout(p=0.1)
@@ -40,11 +39,6 @@ class StateEncoder(nn.Module):
         env_rep = env_rep.view(env_rep.size(0), -1) # [b, 576]
         env_rep = self.dropout(env_rep)
         env_rep = self.env_fc(env_rep) # [b, 256]
-
-        # rep = torch.cat([agent_rep, env_rep], dim=-1) # [b, 512]
-        # rep = self.fusion_fc(rep) # [b, 256]
-
-        # scale = (agent_rep.mean(dim=1, keepdim=True) + 1e-6) / (env_rep.mean(dim=1, keepdim=True) + 1e-6)
 
         rep = agent_rep + env_rep
 
