@@ -33,7 +33,7 @@ def training_loop(model: nn.Module,
                   weight_decay: float,
                   lambda_d: float,
                   lambda_r: float,
-                  beta_r: float,
+                  lambda_c: float,
                   fine_tune: bool=False) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
@@ -48,7 +48,7 @@ def training_loop(model: nn.Module,
             actions = data.actions
             predicted_s, encoded_s = model(states, actions)
 
-            energy, d, r = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, beta_r=beta_r)
+            energy, dis, var, cov = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, lambda_c=lambda_c)
 
             if fine_tune:
                 if energy.item() < best_energy:
@@ -63,11 +63,13 @@ def training_loop(model: nn.Module,
             optimizer.step()
             scheduler.step()
 
-            pbar.set_postfix({"total energy: ": energy.item(), "mse loss:": d.item(), "reg loss:": r.item()})
+            pbar.set_postfix({"total energy: ": energy.item(),
+                              "mse loss:": dis.item(),
+                              "var loss:": var.item(),
+                              "cov loss:": cov.item()})
 
-        if not fine_tune:
-            ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
-            torch.save(model.state_dict(), ckpt_path)
+        ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
+        torch.save(model.state_dict(), ckpt_path)
     return
 
 
@@ -92,7 +94,7 @@ if __name__ == "__main__":
     weight_decay = config["train"]["weight_decay"]
     lambda_d = config["train"]["lambda_d"]
     lambda_r = config["train"]["lambda_r"]
-    beta_r = config["train"]["beta_r"]
+    lambda_c = config["train"]["lambda_c"]
     training_loop(model=model,
                   train_loader=train_dataloader,
                   epoch=epoch,
@@ -100,6 +102,6 @@ if __name__ == "__main__":
                   weight_decay=weight_decay,
                   lambda_d=lambda_d,
                   lambda_r=lambda_r,
-                  beta_r=beta_r)
+                  lambda_c=lambda_c)
     ckpt_path = "./model_weights.pth"
     torch.save(model.state_dict(), ckpt_path)

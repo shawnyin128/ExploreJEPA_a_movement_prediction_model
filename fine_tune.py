@@ -30,7 +30,7 @@ if __name__ == "__main__":
     weight_decay = config["train"]["weight_decay"]
     lambda_d = config["train"]["lambda_d"]
     lambda_r = config["train"]["lambda_r"]
-    beta_r = config["train"]["beta_r"]
+    lambda_c = config["train"]["lambda_c"]
     training_loop(model=model,
                   train_loader=train_dataloader,
                   epoch=epoch,
@@ -38,5 +38,5 @@ if __name__ == "__main__":
                   weight_decay=weight_decay,
                   lambda_d=lambda_d,
                   lambda_r=lambda_r,
-                  beta_r=beta_r,
+                  lambda_c=lambda_c,
                   fine_tune=True)
