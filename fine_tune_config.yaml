@@ -1,0 +1,14 @@
+train:
+  epoch: 10
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  lambda_d: 0.6
+  lambda_r: 0.4
+  beta_r: -1.0
+
+model:
+  image_size: 65
+  hidden_dim: 16
+  output_dim: 256
+  layers: 4

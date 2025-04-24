@@ -8,7 +8,7 @@ from train import training_loop
 
 
 if __name__ == "__main__":
-    with open(os.path.join(os.path.dirname(__file__), "config.yaml"), "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), "fine_tune_config.yaml"), "r") as f:
         config = yaml.safe_load(f)
 
     epoch = config["train"]["epoch"]
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     model = ExploreJEPA(encoding_hidden_dim=hidden_dim,
                         encoding_dim=encoding_dim,
                         encoding_layers=layers)
-    ckpt_path = "./ft_model_weights.pth"
+    ckpt_path = "./ft_target_model_weights.pth"
     model.load_state_dict(torch.load(ckpt_path))
     model.to("cuda")
 
@@ -38,6 +38,5 @@ if __name__ == "__main__":
                   weight_decay=weight_decay,
                   lambda_d=lambda_d,
                   lambda_r=lambda_r,
-                  beta_r=beta_r)
-    ckpt_path = "./model_weights.pth"
-    torch.save(model.state_dict(), ckpt_path)
+                  beta_r=beta_r,
+                  fine_tune=True)

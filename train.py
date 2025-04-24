@@ -33,11 +33,14 @@ def training_loop(model: nn.Module,
                   weight_decay: float,
                   lambda_d: float,
                   lambda_r: float,
-                  beta_r: float) -> None:
+                  beta_r: float,
+                  fine_tune: bool=False) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
     scheduler = get_scheduler(optimizer, t_max=epoch * 2300)
 
+    if fine_tune:
+        best_energy = float("inf")
     for i in range(epoch):
         pbar = tqdm(train_loader)
         for data in pbar:
@@ -46,6 +49,12 @@ def training_loop(model: nn.Module,
             predicted_s, encoded_s = model(states, actions)
 
             energy, d, r = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, beta_r=beta_r)
+
+            if fine_tune:
+                if energy.item() < best_energy:
+                    best_energy = energy.item()
+                    ckpt_path = "./ft_result_model_weights.pth"
+                    torch.save(model.state_dict(), ckpt_path)
 
             optimizer.zero_grad()
             energy.backward()
