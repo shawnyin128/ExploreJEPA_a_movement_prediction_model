@@ -3,12 +3,12 @@ train:
   batch_size: 64
   learning_rate: 0.001
   weight_decay: 0.00001
-  lambda_d: 0.6
-  lambda_r: 0.4
+  lambda_d: 0.7
+  lambda_r: 0.3
   beta_r: -1.0
 
 model:
   image_size: 65
-  hidden_dim: 16
+  hidden_dim: 32
   output_dim: 256
-  layers: 4
+  layers: 3

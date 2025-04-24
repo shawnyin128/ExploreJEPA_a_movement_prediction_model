@@ -15,4 +15,4 @@ def energy_function(criterion: nn.Module,
 
     energy = distance * lambda_d + lambda_r * reg
 
-    return energy, distance, reg
+    return energy, distance * lambda_d, lambda_r * reg

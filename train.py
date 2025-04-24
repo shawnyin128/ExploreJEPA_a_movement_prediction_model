@@ -65,8 +65,9 @@ def training_loop(model: nn.Module,
 
             pbar.set_postfix({"total energy: ": energy.item(), "mse loss:": d.item(), "reg loss:": r.item()})
 
-        ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
-        torch.save(model.state_dict(), ckpt_path)
+        if not fine_tune:
+            ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
+            torch.save(model.state_dict(), ckpt_path)
     return
 
 
