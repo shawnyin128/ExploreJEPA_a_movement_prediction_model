@@ -39,5 +39,5 @@ if __name__ == "__main__":
                   lambda_d=lambda_d,
                   lambda_r=lambda_r,
                   beta_r=beta_r)
-    ckpt_path = "./model_weights_ft.pth"
+    ckpt_path = "./model_weights.pth"
     torch.save(model.state_dict(), ckpt_path)
