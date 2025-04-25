@@ -10,30 +10,36 @@ class StatePredictor(nn.Module):
         self.in_dim = state_dim + action_dim
         self.hidden_dim = 4 * state_dim
 
-        self.linear1 = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dim)
-        self.bn1 = nn.BatchNorm1d(self.hidden_dim)
+        self.state_ln = nn.LayerNorm(self.state_dim)
 
-        self.linear2 = nn.Linear(in_features=self.hidden_dim, out_features=self.hidden_dim)
-        self.bn2 = nn.BatchNorm1d(self.hidden_dim)
+        self.action_linear = nn.Linear(in_features=action_dim, out_features=self.state_dim)
+        self.action_ln = nn.LayerNorm(self.state_dim)
 
-        self.linear3 = nn.Linear(in_features=self.hidden_dim, out_features=state_dim)
-        self.relu = nn.ReLU()
+        self.fusion_linear_1 = nn.Linear(in_features=self.state_dim, out_features=self.hidden_dim)
+        self.fusion_ln = nn.LayerNorm(self.hidden_dim)
+        self.fusion_linear_2 = nn.Linear(in_features=self.hidden_dim, out_features=self.state_dim)
+
+        self.gelu = nn.GELU()
         self.dropout = nn.Dropout(p=0.1)
 
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: [b, 258]
-        original = x[:, :self.state_dim]  # original: [b, 256]
+        # x: [b, d+2]
+        states_repr = x[:, :self.state_dim] # [b, d]
+        states_repr = self.state_ln(states_repr)
 
-        s = self.linear1(x)
-        s = self.relu(s)
-        s = self.bn1(s)
+        actions = x[:, self.state_dim:] # [b, 2]
+        actions_repr = self.action_linear(actions) # [b, d]
+        actions_repr = self.action_ln(actions_repr)
+
+        repr = states_repr + actions_repr # [b, d]
+        original = repr
+
+        s = self.fusion_linear_1(repr) # [b, 4*d]
+        s = self.gelu(s)
+        s = self.fusion_ln(s)
         s = self.dropout(s)
 
-        s = self.linear2(s)
-        s = self.relu(s)
-        s = self.bn2(s)
-
-        s = self.linear3(s)  # [b, 256]
+        s = self.fusion_linear_2(s)  # [b, d]
 
         return original + s

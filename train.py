@@ -27,22 +27,34 @@ def get_scheduler(optimizer: optim.Optimizer,
 
 
 def training_loop(model: nn.Module,
+                  config: dict,
                   train_loader: torch.utils.data.DataLoader,
                   epoch: int,
                   learning_rate: float,
                   weight_decay: float,
-                  lambda_d: float,
-                  lambda_r: float,
-                  lambda_c: float,
                   fine_tune: bool=False) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
     scheduler = get_scheduler(optimizer, t_max=epoch * 2300)
 
+    cur_stage = 0
+
     if fine_tune:
         best_energy = float("inf")
+
     for i in range(epoch):
         pbar = tqdm(train_loader)
+        if not fine_tune:
+            if i != 0 and i % config["train"]["stage_epoch"] == 0:
+                cur_stage += 1
+            lambda_d = config["energy"][f"lambda_d_{cur_stage}"]
+            lambda_r = config["energy"][f"lambda_r_{cur_stage}"]
+            lambda_c = config["energy"][f"lambda_c_{cur_stage}"]
+        else:
+            lambda_d = config["energy"]["lambda_d_ft"]
+            lambda_r = config["energy"]["lambda_r_ft"]
+            lambda_c = config["energy"]["lambda_c_ft"]
+        print(f"stage: {cur_stage}, epoch: {i}, lambda_d: {lambda_d}, lambda_r: {lambda_r}, lambda_c: {lambda_c}")
         for data in pbar:
             states = data.states
             actions = data.actions
@@ -53,7 +65,7 @@ def training_loop(model: nn.Module,
             if fine_tune:
                 if energy.item() < best_energy:
                     best_energy = energy.item()
-                    ckpt_path = "./ft_result_model_weights.pth"
+                    ckpt_path = "./best_model_weights.pth"
                     torch.save(model.state_dict(), ckpt_path)
 
             optimizer.zero_grad()
@@ -88,20 +100,25 @@ if __name__ == "__main__":
     model = ExploreJEPA(encoding_hidden_dim=hidden_dim,
                         encoding_dim=encoding_dim,
                         encoding_layers=layers)
+    if config["train"]["base_model"] or config["train"]["fine_tune"]:
+        print("using base model")
+        ckpt_path = "./base_model_weights.pth"
+        model.load_state_dict(torch.load(ckpt_path))
     model.to("cuda")
 
     learning_rate = config["train"]["learning_rate"]
     weight_decay = config["train"]["weight_decay"]
-    lambda_d = config["train"]["lambda_d"]
-    lambda_r = config["train"]["lambda_r"]
-    lambda_c = config["train"]["lambda_c"]
+
     training_loop(model=model,
+                  config=config,
                   train_loader=train_dataloader,
                   epoch=epoch,
                   learning_rate=learning_rate,
                   weight_decay=weight_decay,
-                  lambda_d=lambda_d,
-                  lambda_r=lambda_r,
-                  lambda_c=lambda_c)
-    ckpt_path = "./model_weights.pth"
+                  fine_tune=config["train"]["fine_tune"])
+
+    if not config["train"]["fine_tune"]:
+        ckpt_path = "./base_model_weights.pth"
+    else:
+        ckpt_path = "./model_weights.pth"
     torch.save(model.state_dict(), ckpt_path)

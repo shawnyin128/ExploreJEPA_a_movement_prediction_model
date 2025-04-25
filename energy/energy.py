@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 def main_loss(criterion: nn.Module,
@@ -16,13 +15,10 @@ def variance_loss(predicted: torch.Tensor,
                   lambda_r: float) -> torch.Tensor:
     p = predicted.view(-1, predicted.shape[-1])
     e = encoded.view(-1, encoded.shape[-1])
-    std_p = torch.sqrt(p.var(dim=0, unbiased=False) + 1e-4)
-    std_e = torch.sqrt(e.var(dim=0, unbiased=False) + 1e-4)
+    std_p = torch.mean(p.var(dim=0, unbiased=False) + 1e-4)
+    std_e = torch.mean(e.var(dim=0, unbiased=False) + 1e-4)
 
-    std_p_val = torch.mean(F.relu(1.0 - std_p))
-    std_e_val = torch.mean(F.relu(1.0 - std_e))
-
-    variance = lambda_r * (std_p_val + std_e_val)
+    variance = lambda_r * (std_p ** -1.0 + std_e ** -1.0)
     return variance
 
 

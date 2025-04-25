@@ -13,15 +13,15 @@ class ConvNextBlock(nn.Module):
 
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: [b, 16, 65, 65]
+        # x: [b, h, 65, 65]
         original = x
 
-        residual = self.dwConv(x) # [b, 16, 65, 65]
-        residual = residual.permute(0, 2, 3, 1) # [b, 65, 65, 16]
+        residual = self.dwConv(x) # [b, h, 65, 65]
+        residual = residual.permute(0, 2, 3, 1) # [b, 65, 65, h]
         residual = self.ln(residual)
-        residual = residual.permute(0, 3, 1, 2) # [b, 16, 65, 65]
-        residual = self.pwConv4(residual) # [b, 64, 65, 65]
+        residual = residual.permute(0, 3, 1, 2) # [b, h, 65, 65]
+        residual = self.pwConv4(residual) # [b, h*4, 65, 65]
         residual = self.gelu(residual)
-        residual = self.pwConv(residual) # [b, 16, 65, 65]
+        residual = self.pwConv(residual) # [b, h, 65, 65]
 
         return original + residual
