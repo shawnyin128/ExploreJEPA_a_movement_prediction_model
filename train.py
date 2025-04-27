@@ -40,19 +40,18 @@ def training_loop(model: nn.Module,
     cur_stage = 0
     total_stages = epoch // config["train"]["stage_epoch"]
     best_energy = float("inf")
-    last_stage_var_loss = 0.9 / 25
 
     for i in range(epoch):
         if i != 0 and i % config["train"]["stage_epoch"] == 0:
             cur_stage += 1
             if cur_stage == total_stages - 1:
                 print("Reaching last stage, switching to fine-tune mode...")
-                print(f"Last stage variance loss (upper bound for saving model): {last_stage_var_loss}")
+                print("Saving model weights to ./model_weights.pth")
                 fine_tune = True
+                ckpt_path = "./model_weights.pth"
+                torch.save(model.state_dict(), ckpt_path)
 
         pbar = tqdm(train_loader)
-        epoch_var_loss = 0.0
-        iteration = 0
 
         if not fine_tune:
             lambda_d = config["energy"][f"lambda_d_{cur_stage}"]
@@ -71,11 +70,8 @@ def training_loop(model: nn.Module,
 
             energy, dis, var, cov = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, lambda_c=lambda_c)
 
-            epoch_var_loss += var.item()
-            iteration += 1
-
             if fine_tune:
-                if energy.item() < best_energy and var.item() / lambda_r <= last_stage_var_loss:
+                if energy.item() < best_energy:
                     best_energy = energy.item()
                     ckpt_path = "./model_weights.pth"
                     torch.save(model.state_dict(), ckpt_path)
@@ -94,9 +90,6 @@ def training_loop(model: nn.Module,
 
         ckpt_path = f"./checkpoint/checkpoint_weights_{(i + 1) % 10}.pth"
         torch.save(model.state_dict(), ckpt_path)
-
-        if not fine_tune:
-            last_stage_var_loss = (epoch_var_loss / iteration) / lambda_r
 
 
 if __name__ == "__main__":
