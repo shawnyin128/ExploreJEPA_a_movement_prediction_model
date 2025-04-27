@@ -1,7 +1,8 @@
-probe_normal val loss: {your loss}
-probe_wall val loss: {your loss}
+probe_normal val loss: 2.9636642932891846
+probe_wall val loss: 6.656404495239258
 {hidden_eval_1} val loss: {your loss}
 {hidden_eval_2} val loss: {your loss}
 # number of trainable parameters of your model
+Total Trainable Parameters: 293,344
 # training command to replicate your submitted model
-python ./train.py
+python train.py

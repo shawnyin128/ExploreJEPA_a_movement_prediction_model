@@ -11,7 +11,7 @@ energy:
   lambda_d_0: 25.0
   lambda_r_0: 25.0
   lambda_c_0: 1.0
-  lambda_d_ft: 35.0
+  lambda_d_ft: 30.0
   lambda_r_ft: 25.0
   lambda_c_ft: 1.0
 
