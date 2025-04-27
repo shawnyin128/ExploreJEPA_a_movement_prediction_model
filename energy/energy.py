@@ -11,32 +11,28 @@ def main_loss(criterion: nn.Module,
 
 
 def variance_loss(predicted: torch.Tensor,
-                  encoded: torch.Tensor,
-                  lambda_r: float) -> torch.Tensor:
-    p = predicted.view(-1, predicted.shape[-1])
-    e = encoded.view(-1, encoded.shape[-1])
-    std_p = torch.mean(p.var(dim=0, unbiased=False) + 1e-4)
-    std_e = torch.mean(e.var(dim=0, unbiased=False) + 1e-4)
+                  lambda_r: float,
+                  target_std: float = 1.0) -> torch.Tensor:
+    p = predicted.view(-1, predicted.shape[-1])  # [b*t, d]
 
-    variance = lambda_r * (std_p ** -1.0 + std_e ** -1.0)
-    return variance
+    std = torch.sqrt(p.var(dim=0) + 1e-4)  # [d]
+    hinge = torch.max(torch.zeros_like(std), target_std - std)
+
+    loss = hinge.mean() * lambda_r
+    return loss
 
 
 def covariance_loss(predicted: torch.Tensor,
-                    encoded: torch.Tensor,
                     lambda_c: float) -> torch.Tensor:
-    p = predicted.view(-1, predicted.shape[-1])
-    e = encoded.view(-1, encoded.shape[-1])
+    p = predicted.view(-1, predicted.shape[-1])  # [b*t, d]
 
     norm_p = p - p.mean(dim=0, keepdim=True)
-    norm_e = e - e.mean(dim=0, keepdim=True)
-
     N, D = norm_p.shape
-    cov_p = (norm_p.T @ norm_p) / (N - 1)
-    cov_p_val = (cov_p ** 2).sum() - (cov_p.diag() ** 2).sum()
-    cov_e = (norm_e.T @ norm_e) / (N - 1)
-    cov_e_val = (cov_e ** 2).sum() - (cov_e.diag() ** 2).sum()
-    return lambda_c * (cov_p_val + cov_e_val)
+    cov_p = (norm_p.T @ norm_p) / (N - 1 + 1e-8)
+    cov_p_val = ((cov_p ** 2).sum() - (cov_p.diag() ** 2).sum()) / D
+
+    cov_loss = cov_p_val * lambda_c
+    return cov_loss
 
 
 def energy_function(criterion: nn.Module,
@@ -46,8 +42,8 @@ def energy_function(criterion: nn.Module,
                     lambda_r: float,
                     lambda_c: float) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     distance = main_loss(criterion, predicted, encoded, lambda_d)
-    var_reg = variance_loss(predicted, encoded, lambda_r)
-    cov_reg = covariance_loss(predicted, encoded, lambda_c)
+    var_reg = variance_loss(predicted, lambda_r)
+    cov_reg = covariance_loss(predicted, lambda_c)
 
     energy = distance + var_reg + cov_reg
     return energy, distance, var_reg, cov_reg

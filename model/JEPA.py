@@ -14,12 +14,9 @@ class ExploreJEPA(nn.Module):
         super().__init__()
         self.device = device
         self.repr_dim = encoding_dim
-        self.init_state_encoder = StateEncoder(hidden_dim=encoding_hidden_dim,
+        self.state_encoder = StateEncoder(hidden_dim=encoding_hidden_dim,
                                                embedding_dim=encoding_dim,
                                                block_layers=encoding_layers)
-        self.later_state_encoder = StateEncoder(hidden_dim=encoding_hidden_dim,
-                                                embedding_dim=encoding_dim,
-                                                block_layers=encoding_layers)
         self.state_predictor = StatePredictor(state_dim=encoding_dim,
                                               action_dim=action_dim)
 
@@ -29,7 +26,7 @@ class ExploreJEPA(nn.Module):
         # x: [b, t, 2, 65, 65]
         # actions: [b, t-1, 2]
         init_state = x[:, 0, :, :, :] # [b, 2, 65, 65]
-        init_state_repr = self.init_state_encoder(init_state) # [b, d]
+        init_state_repr = self.state_encoder(init_state) # [b, d]
 
         predicted_state_repr = []
         cur_encoded_state_repr = []
@@ -37,15 +34,13 @@ class ExploreJEPA(nn.Module):
             prev_predicted_state_repr = init_state_repr if i == 0 else predicted_state_repr[i - 1]
             cur_action = actions[:, i, :] # [b, 2]
             # predict next state
-            cur_input = torch.cat([prev_predicted_state_repr, cur_action], dim=1) # [b, d+2]
-
-            cur_predicted_state_repr = self.state_predictor(cur_input)
+            cur_predicted_state_repr = self.state_predictor(prev_predicted_state_repr, cur_action)
             predicted_state_repr.append(cur_predicted_state_repr)
 
             # encode next state
             if self.training:
                 cur_state = x[:, i + 1, :, :, :]  # [b, 2, 65, 65]
-                cur_state_repr = self.later_state_encoder(cur_state) # [b, d]
+                cur_state_repr = self.state_encoder(cur_state) # [b, d]
                 cur_encoded_state_repr.append(cur_state_repr)
 
         predicted = torch.stack(predicted_state_repr, dim=1) # [b, t-1, d]

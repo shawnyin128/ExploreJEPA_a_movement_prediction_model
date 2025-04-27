@@ -35,18 +35,26 @@ def training_loop(model: nn.Module,
                   fine_tune: bool=False) -> None:
     criterion = get_criterion()
     optimizer = get_optimizer(model, learning_rate, weight_decay)
-    scheduler = get_scheduler(optimizer, t_max=epoch * 2300)
+    scheduler = get_scheduler(optimizer, t_max=epoch * 1150)
 
     cur_stage = 0
-
-    if fine_tune:
-        best_energy = float("inf")
+    total_stages = epoch // config["train"]["stage_epoch"]
+    best_energy = float("inf")
+    last_stage_var_loss = 0.85
 
     for i in range(epoch):
+        if i != 0 and i % config["train"]["stage_epoch"] == 0:
+            cur_stage += 1
+            if cur_stage == total_stages - 1:
+                print("Reaching last stage, switching to fine-tune mode...")
+                print(f"Last stage variance loss (upper bound for saving model): {last_stage_var_loss}")
+                fine_tune = True
+
         pbar = tqdm(train_loader)
+        epoch_var_loss = 0.0
+        iteration = 0
+
         if not fine_tune:
-            if i != 0 and i % config["train"]["stage_epoch"] == 0:
-                cur_stage += 1
             lambda_d = config["energy"][f"lambda_d_{cur_stage}"]
             lambda_r = config["energy"][f"lambda_r_{cur_stage}"]
             lambda_c = config["energy"][f"lambda_c_{cur_stage}"]
@@ -54,23 +62,28 @@ def training_loop(model: nn.Module,
             lambda_d = config["energy"]["lambda_d_ft"]
             lambda_r = config["energy"]["lambda_r_ft"]
             lambda_c = config["energy"]["lambda_c_ft"]
-        print(f"stage: {cur_stage}, epoch: {i}, lambda_d: {lambda_d}, lambda_r: {lambda_r}, lambda_c: {lambda_c}")
+        print(f"stage: {cur_stage}, epoch: {i}, lambda_d: {lambda_d}, lambda_r: {lambda_r}, lambda_c: {lambda_c}, fine_tune: {fine_tune}")
+        
         for data in pbar:
             states = data.states
             actions = data.actions
             predicted_s, encoded_s = model(states, actions)
 
             energy, dis, var, cov = energy_function(criterion, predicted_s, encoded_s, lambda_d=lambda_d, lambda_r=lambda_r, lambda_c=lambda_c)
+            
+            epoch_var_loss += var.item()
+            iteration += 1
 
             if fine_tune:
-                if energy.item() < best_energy:
+                cur_var_loss = epoch_var_loss / iteration
+                if energy.item() < best_energy and cur_var_loss <= last_stage_var_loss:
                     best_energy = energy.item()
-                    ckpt_path = "./best_model_weights.pth"
+                    ckpt_path = "./model_weights.pth"
                     torch.save(model.state_dict(), ckpt_path)
 
             optimizer.zero_grad()
             energy.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.5)
 
             optimizer.step()
             scheduler.step()
@@ -80,9 +93,11 @@ def training_loop(model: nn.Module,
                               "var loss:": var.item(),
                               "cov loss:": cov.item()})
 
-        ckpt_path = f"./checkpoint/checkpoint_weights_{i + 1}.pth"
+        ckpt_path = f"./checkpoint/checkpoint_weights_{(i + 1) % 10}.pth"
         torch.save(model.state_dict(), ckpt_path)
-    return
+
+        if not fine_tune:
+            last_stage_var_loss = epoch_var_loss / iteration
 
 
 if __name__ == "__main__":
@@ -117,8 +132,3 @@ if __name__ == "__main__":
                   weight_decay=weight_decay,
                   fine_tune=config["train"]["fine_tune"])
 
-    if not config["train"]["fine_tune"]:
-        ckpt_path = "./base_model_weights.pth"
-    else:
-        ckpt_path = "./model_weights.pth"
-    torch.save(model.state_dict(), ckpt_path)

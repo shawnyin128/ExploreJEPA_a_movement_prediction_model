@@ -1,28 +1,19 @@
 train:
-  epoch: 20
-  stage_epoch: 5
+  epoch: 100
+  stage_epoch: 50
   base_model: False
   fine_tune: False
-  batch_size: 64
-  learning_rate: 0.001
-  weight_decay: 0.00001
+  batch_size: 128
+  learning_rate: 0.0005
+  weight_decay: 0.0003
 
 energy:
-  lambda_d_0: 1
-  lambda_r_0: 25
-  lambda_c_0: 1
-  lambda_d_1: 10
-  lambda_r_1: 25
-  lambda_c_1: 1
-  lambda_d_2: 15
-  lambda_r_2: 25
-  lambda_c_2: 1
-  lambda_d_3: 25
-  lambda_r_3: 25
-  lambda_c_3: 1
-  lambda_d_ft: 25
-  lambda_r_ft: 25
-  lambda_c_ft: 1
+  lambda_d_0: 25.0
+  lambda_r_0: 25.0
+  lambda_c_0: 1.0
+  lambda_d_ft: 35.0
+  lambda_r_ft: 25.0
+  lambda_c_ft: 1.0
 
 model:
   image_size: 65
