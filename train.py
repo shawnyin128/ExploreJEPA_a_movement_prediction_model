@@ -40,7 +40,7 @@ def training_loop(model: nn.Module,
     cur_stage = 0
     total_stages = epoch // config["train"]["stage_epoch"]
     best_energy = float("inf")
-    last_stage_var_loss = 0.9
+    last_stage_var_loss = 0.9 / 25
 
     for i in range(epoch):
         if i != 0 and i % config["train"]["stage_epoch"] == 0:
@@ -75,7 +75,7 @@ def training_loop(model: nn.Module,
             iteration += 1
 
             if fine_tune:
-                if energy.item() < best_energy and var.item() <= last_stage_var_loss:
+                if energy.item() < best_energy and var.item() / lambda_r <= last_stage_var_loss:
                     best_energy = energy.item()
                     ckpt_path = "./model_weights.pth"
                     torch.save(model.state_dict(), ckpt_path)
@@ -96,7 +96,7 @@ def training_loop(model: nn.Module,
         torch.save(model.state_dict(), ckpt_path)
 
         if not fine_tune:
-            last_stage_var_loss = epoch_var_loss / iteration
+            last_stage_var_loss = (epoch_var_loss / iteration) / lambda_r
 
 
 if __name__ == "__main__":
