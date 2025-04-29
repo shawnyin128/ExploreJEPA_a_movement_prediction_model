@@ -1,6 +1,6 @@
 train:
-  epoch: 140
-  stage_epoch: 70
+  epoch: 100
+  stage_epoch: 50
   base_model: False
   fine_tune: False
   batch_size: 128
