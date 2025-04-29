@@ -32,8 +32,8 @@ class StatePredictor(nn.Module):
         original = repr
 
         s = self.fusion_linear_1(repr) # [b, 4*d]
-        s = self.gelu(s)
         s = self.fusion_ln(s)
+        s = self.gelu(s)
         s = self.dropout(s)
 
         s = self.fusion_linear_2(s)  # [b, d]
