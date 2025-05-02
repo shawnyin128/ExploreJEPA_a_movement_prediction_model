@@ -14,8 +14,10 @@ lambda_{}_n: set the lambda for specific loss term and stage n.
 `python train.py`
 
 # Result:
-normal loss: 2.9636642932891846 \
-wall loss: 6.656404495239258
+normal loss: 3.0403687953948975 \
+wall loss: 6.670853614807129 \
+wall_other loss: 6.982694625854492 \
+expert loss: 10.202990531921387
 
 # Reference
 https://github.com/alexnwang/DL25SP-Final-Project
