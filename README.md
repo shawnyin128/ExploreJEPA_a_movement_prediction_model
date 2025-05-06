@@ -13,11 +13,14 @@ lambda_{}_n: set the lambda for specific loss term and stage n.
 ## command
 `python train.py`
 
-# Result:
+# Result
+## Loss
 normal loss: 3.0403687953948975 \
 wall loss: 6.670853614807129 \
 wall_other loss: 6.982694625854492 \
 expert loss: 10.202990531921387
+# Ranking
+No.8 among about 30 teams, with very marginal performance difference with No.4 - No.7 models. But my models' parameter is 10x - 20x fewer than all the models in front (except the No.1 model which uses deterministic algorithm to replace lots of layers).
 
 # Reference
 https://github.com/alexnwang/DL25SP-Final-Project
